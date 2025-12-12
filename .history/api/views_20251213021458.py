@@ -20,6 +20,7 @@ class ProjectDetailAPIView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
 
 
+
 class ContactCreateAPIView(generics.CreateAPIView):
     queryset = ContactMessage.objects.all()
     serializer_class = ContactSerializer
@@ -28,12 +29,18 @@ class ContactCreateAPIView(generics.CreateAPIView):
     def perform_create(self, serializer):
         data = serializer.save()
 
-        send_mail(
-            subject=f"New message from {data.first_name}",
-            message=data.message,
-            from_email=None,
-            recipient_list=["krupaisaac2003@gmail.com"],
-            fail_silently=False,
+        subject = f"New Contact Message from {data.first_name} {data.last_name}"
+        message = (
+            f"Name: {data.first_name} {data.last_name}\n"
+            f"Email: {data.email}\n"
+            f"Phone: {data.phone}\n\n"
+            f"Message:\n{data.message}"
         )
 
-
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [settings.EMAIL_HOST_USER],
+            fail_silently=False
+        )

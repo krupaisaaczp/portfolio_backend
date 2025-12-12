@@ -19,6 +19,7 @@ class ProjectDetailAPIView(generics.RetrieveAPIView):
     serializer_class = ProjectSerializer
     permission_classes = [AllowAny]
 
+from django.core.mail import send_mail
 
 class ContactCreateAPIView(generics.CreateAPIView):
     queryset = ContactMessage.objects.all()
@@ -37,3 +38,26 @@ class ContactCreateAPIView(generics.CreateAPIView):
         )
 
 
+class ContactCreateAPIView(generics.CreateAPIView):
+    queryset = ContactMessage.objects.all()
+    serializer_class = ContactSerializer
+    permission_classes = [AllowAny]
+
+    def perform_create(self, serializer):
+        data = serializer.save()
+
+        subject = f"New Contact Message from {data.first_name} {data.last_name}"
+        message = (
+            f"Name: {data.first_name} {data.last_name}\n"
+            f"Email: {data.email}\n"
+            f"Phone: {data.phone}\n\n"
+            f"Message:\n{data.message}"
+        )
+
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [settings.EMAIL_HOST_USER],
+            fail_silently=False
+        )
